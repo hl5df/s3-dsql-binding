@@ -1,0 +1,16 @@
+{
+  "name": "test-05-16",
+  "env": {
+    "production": {
+      "integrations": []
+    },
+    "preview": {
+      "integrations": []
+    }
+  },
+  "deploy": {
+    "install": "npm ci",
+    "output_directory": ".omega",
+    "build": "@omega-next-adapter"
+  }
+}
