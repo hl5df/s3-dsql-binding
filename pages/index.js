@@ -365,7 +365,7 @@ function BedrockTab({ toast }) {
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [modelId, setModelId] = useState("anthropic.claude-sonnet-4-6-20250514-v1:0");
+  const [modelId, setModelId] = useState("us.anthropic.claude-sonnet-4-20250514-v1:0");
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -403,9 +403,8 @@ function BedrockTab({ toast }) {
           onChange={(e) => setModelId(e.target.value)}
           style={{ background: "#0d0d14", border: "1px solid #333", borderRadius: 6, padding: "4px 8px", color: "#e5e5e5", fontSize: "0.8rem" }}
         >
-          <option value="anthropic.claude-sonnet-4-6-20250514-v1:0">Claude Sonnet 4</option>
-          <option value="anthropic.claude-haiku-4-5-20251001-v1:0">Claude Haiku 4.5</option>
-          <option value="amazon.titan-text-express-v1">Titan Text Express</option>
+          <option value="us.anthropic.claude-sonnet-4-20250514-v1:0">Claude Sonnet 4</option>
+          <option value="us.anthropic.claude-haiku-4-5-20251001-v1:0">Claude Haiku 4.5</option>
         </select>
       </div>
 
