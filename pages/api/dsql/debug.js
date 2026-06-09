@@ -35,7 +35,7 @@ export default async function handler(req, res) {
   let connection;
   try {
     const signer = new DsqlSigner({ hostname: host, region });
-    const token = await signer.getDbConnectAdminAuthToken();
+    const token = await signer.getDbConnectAuthToken();
     info.tokenGenerated = true;
     info.tokenPrefix = token.substring(0, 80) + "...";
 
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
     connection = postgres({
       host,
       port: 5432,
-      username: "admin",
+      username: process.env.PGUSER || "admin",
       password: token,
       database: "postgres",
       ssl: true,
@@ -71,7 +71,7 @@ export default async function handler(req, res) {
     connection2 = postgres({
       host,
       port: 5432,
-      username: "admin",
+      username: process.env.PGUSER || "admin",
       password: token2,
       database: "postgres",
       ssl: true,
