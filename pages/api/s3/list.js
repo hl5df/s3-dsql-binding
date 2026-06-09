@@ -1,13 +1,13 @@
 import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
-const client = new S3Client({ region: process.env.BUCKET_REGION });
+const client = new S3Client({ region: process.env.BUCKET_REGION || "us-east-1" });
 
 export default async function handler(req, res) {
   try {
     const prefix = req.query.prefix || "";
     const data = await client.send(
       new ListObjectsV2Command({
-        Bucket: process.env.BUCKET_NAME,
+        Bucket: "kaixin-hackathon",
         Prefix: prefix,
         Delimiter: "/",
       })
@@ -21,8 +21,8 @@ export default async function handler(req, res) {
       prefix,
       folders,
       objects,
-      bucket: process.env.BUCKET_NAME,
-      region: process.env.BUCKET_REGION,
+      bucket: "kaixin-hackathon",
+      region: process.env.BUCKET_REGION || "us-east-1",
     });
   } catch (e) {
     res.status(500).json({ error: e.message });

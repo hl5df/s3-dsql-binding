@@ -1,14 +1,14 @@
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const client = new S3Client({ region: process.env.BUCKET_REGION });
+const client = new S3Client({ region: process.env.BUCKET_REGION || "us-east-1" });
 
 export default async function handler(req, res) {
   try {
     const { key } = req.query;
     const url = await getSignedUrl(
       client,
-      new GetObjectCommand({ Bucket: process.env.BUCKET_NAME, Key: key }),
+      new GetObjectCommand({ Bucket: "kaixin-hackathon", Key: key }),
       { expiresIn: 300 }
     );
     res.json({ url });

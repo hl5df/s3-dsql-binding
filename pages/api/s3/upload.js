@@ -1,7 +1,7 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
-const client = new S3Client({ region: process.env.BUCKET_REGION });
+const client = new S3Client({ region: process.env.BUCKET_REGION || "us-east-1" });
 
 export default async function handler(req, res) {
   try {
@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     const url = await getSignedUrl(
       client,
       new PutObjectCommand({
-        Bucket: process.env.BUCKET_NAME,
+        Bucket: "kaixin-hackathon",
         Key: key,
         ContentType: contentType || "application/octet-stream",
       }),
