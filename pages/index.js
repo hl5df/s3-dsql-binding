@@ -251,25 +251,40 @@ function S3Tab({ toast }) {
 // ─── DSQL Tab ─────────────────────────────────────────────────────────────────
 
 function DSQLTab({ toast }) {
-  const [sql, setSql] = useState("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name;");
+  const [sql, setSql] = useState("SELECT * FROM food_orders ORDER BY created_at;");
   const [result, setResult] = useState(null);
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(false);
   const [tablesLoading, setTablesLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/dsql/tables");
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-        setTables(data.tables);
-      } catch (e) {
-        toast(e.message, "error");
-      }
-      setTablesLoading(false);
-    })();
+  const loadTables = useCallback(async () => {
+    try {
+      const res = await fetch("/api/dsql/tables");
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setTables(data.tables);
+    } catch (e) {
+      toast(e.message, "error");
+    }
+    setTablesLoading(false);
   }, [toast]);
+
+  useEffect(() => { loadTables(); }, [loadTables]);
+
+  const createTable = async () => {
+    setCreating(true);
+    try {
+      const res = await fetch("/api/dsql/setup", { method: "POST" });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      toast("Created 'food_orders' table with sample data");
+      await loadTables();
+    } catch (e) {
+      toast(e.message, "error");
+    }
+    setCreating(false);
+  };
 
   const runQuery = async () => {
     if (!sql.trim()) return;
@@ -293,9 +308,12 @@ function DSQLTab({ toast }) {
 
   return (
     <>
-      <div style={{ display: "flex", gap: "1.5rem", marginBottom: "1.5rem", fontSize: "0.8rem", color: "#888" }}>
+      <div style={{ display: "flex", gap: "1.5rem", marginBottom: "1.5rem", fontSize: "0.8rem", color: "#888", alignItems: "center" }}>
         <span>🗄️ <strong style={{ color: "#e5e5e5" }}>Aurora DSQL</strong></span>
         <span>📋 {tablesLoading ? "…" : `${tables.length} table${tables.length !== 1 ? "s" : ""}`}</span>
+        <button onClick={createTable} disabled={creating} style={{ ...btnSecondary, fontSize: "0.75rem", padding: "3px 10px" }}>
+          {creating ? "Creating…" : "+ Create food_orders table"}
+        </button>
       </div>
 
       {tables.length > 0 && (

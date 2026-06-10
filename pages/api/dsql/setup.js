@@ -27,24 +27,26 @@ export default async function handler(req, res) {
     });
 
     await connection`
-      CREATE TABLE IF NOT EXISTS todos (
+      CREATE TABLE IF NOT EXISTS food_orders (
         id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-        title TEXT NOT NULL,
-        completed BOOLEAN DEFAULT false,
+        item TEXT NOT NULL,
+        quantity INTEGER DEFAULT 1,
+        customer_name TEXT NOT NULL,
+        status TEXT DEFAULT 'pending',
         created_at TIMESTAMPTZ DEFAULT now()
       )
     `;
 
     await connection`
-      INSERT INTO todos (title) VALUES
-        ('Try the DSQL binding demo'),
-        ('Upload a file to S3'),
-        ('Chat with Bedrock')
+      INSERT INTO food_orders (item, quantity, customer_name, status) VALUES
+        ('Burger', 2, 'Alice', 'pending'),
+        ('Pizza', 1, 'Bob', 'preparing'),
+        ('Sushi', 3, 'Charlie', 'delivered')
       ON CONFLICT DO NOTHING
     `;
 
-    const rows = await connection`SELECT * FROM todos ORDER BY created_at`;
-    res.json({ ok: true, message: "Table 'todos' created with sample data", rows });
+    const rows = await connection`SELECT * FROM food_orders ORDER BY created_at`;
+    res.json({ ok: true, message: "Table 'food_orders' created with sample data", rows });
   } catch (e) {
     res.status(500).json({ error: e.message });
   } finally {
