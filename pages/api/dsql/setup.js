@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   let connection;
   try {
     const signer = new DsqlSigner({ hostname: host, region });
-    const token = await signer.getDbConnectAuthToken();
+    const token = await signer.getDbConnectAdminAuthToken();
 
     connection = postgres({
       host,

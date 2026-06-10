@@ -35,7 +35,7 @@ export default async function handler(req, res) {
   let connection;
   try {
     const signer = new DsqlSigner({ hostname: host, region });
-    const token = await signer.getDbConnectAuthToken();
+    const token = await signer.getDbConnectAdminAuthToken();
     info.tokenGenerated = true;
     info.tokenPrefix = token.substring(0, 80) + "...";
 
