@@ -248,49 +248,39 @@ function S3Tab({ toast }) {
   );
 }
 
-// ─── DSQL Tab ─────────────────────────────────────────────────────────────────
+// ─── DSQL Tab (Food Ordering) ────────────────────────────────────────────────
 
 function DSQLTab({ toast }) {
-  const [sql, setSql] = useState("SELECT * FROM food_orders ORDER BY created_at;");
-  const [result, setResult] = useState(null);
-  const [tables, setTables] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [tablesLoading, setTablesLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [placing, setPlacing] = useState(false);
+  const [item, setItem] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [customerName, setCustomerName] = useState("");
 
-  const loadTables = useCallback(async () => {
+  const loadOrders = useCallback(async () => {
     try {
-      const res = await fetch("/api/dsql/tables");
+      const res = await fetch("/api/dsql/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql: "SELECT * FROM food_orders ORDER BY created_at DESC;" }),
+      });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      setTables(data.tables);
+      setOrders(data.rows);
     } catch (e) {
       toast(e.message, "error");
     }
-    setTablesLoading(false);
+    setLoading(false);
   }, [toast]);
 
-  useEffect(() => { loadTables(); }, [loadTables]);
+  useEffect(() => { loadOrders(); }, [loadOrders]);
 
-  const createTable = async () => {
-    setCreating(true);
+  const placeOrder = async () => {
+    if (!item.trim() || !customerName.trim()) return toast("Fill in all fields", "error");
+    setPlacing(true);
     try {
-      const res = await fetch("/api/dsql/setup", { method: "POST" });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      toast("Created 'food_orders' table with sample data");
-      await loadTables();
-    } catch (e) {
-      toast(e.message, "error");
-    }
-    setCreating(false);
-  };
-
-  const runQuery = async () => {
-    if (!sql.trim()) return;
-    setLoading(true);
-    setResult(null);
-    try {
+      const sql = `INSERT INTO food_orders (item, quantity, customer_name, status) VALUES ('${item.replace(/'/g, "''")}', ${parseInt(quantity)}, '${customerName.replace(/'/g, "''")}', 'pending')`;
       const res = await fetch("/api/dsql/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -298,79 +288,118 @@ function DSQLTab({ toast }) {
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      setResult(data);
-      toast(`Query returned ${data.rowCount} row${data.rowCount !== 1 ? "s" : ""}`);
+      toast(`Order placed: ${quantity}x ${item}`);
+      setItem("");
+      setQuantity(1);
+      setCustomerName("");
+      await loadOrders();
     } catch (e) {
       toast(e.message, "error");
     }
-    setLoading(false);
+    setPlacing(false);
+  };
+
+  const updateStatus = async (id, newStatus) => {
+    try {
+      const sql = `UPDATE food_orders SET status = '${newStatus}' WHERE id = '${id}'`;
+      const res = await fetch("/api/dsql/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      toast(`Order updated to ${newStatus}`);
+      await loadOrders();
+    } catch (e) {
+      toast(e.message, "error");
+    }
+  };
+
+  const statusColor = (s) => {
+    if (s === "pending") return "#f0883e";
+    if (s === "preparing") return "#58a6ff";
+    if (s === "delivered") return "#7ee787";
+    return "#888";
   };
 
   return (
     <>
-      <div style={{ display: "flex", gap: "1.5rem", marginBottom: "1.5rem", fontSize: "0.8rem", color: "#888", alignItems: "center" }}>
-        <span>🗄️ <strong style={{ color: "#e5e5e5" }}>Aurora DSQL</strong></span>
-        <span>📋 {tablesLoading ? "…" : `${tables.length} table${tables.length !== 1 ? "s" : ""}`}</span>
-        <button onClick={createTable} disabled={creating} style={{ ...btnSecondary, fontSize: "0.75rem", padding: "3px 10px" }}>
-          {creating ? "Creating…" : "+ Create food_orders table"}
-        </button>
+      <div style={{ display: "flex", gap: "1.5rem", marginBottom: "1.5rem", fontSize: "0.8rem", color: "#888" }}>
+        <span>🍔 <strong style={{ color: "#e5e5e5" }}>Food Orders</strong></span>
+        <span>📋 {loading ? "…" : `${orders.length} order${orders.length !== 1 ? "s" : ""}`}</span>
       </div>
 
-      {tables.length > 0 && (
-        <div style={{ marginBottom: "1rem", display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {tables.map((t) => (
-            <span key={t} onClick={() => setSql(`SELECT * FROM ${t} LIMIT 20;`)} style={{ ...tagStyle, cursor: "pointer" }}>
-              {t}
-            </span>
-          ))}
-        </div>
-      )}
-
-      <div style={{ marginBottom: "1rem" }}>
-        <textarea
-          value={sql}
-          onChange={(e) => setSql(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); runQuery(); } }}
-          placeholder="SELECT * FROM ..."
-          style={{
-            width: "100%", minHeight: 120, background: "#0d0d14", border: "1px solid #333",
-            borderRadius: 8, padding: "0.75rem", color: "#e5e5e5", fontFamily: "monospace",
-            fontSize: "0.85rem", resize: "vertical",
-          }}
-        />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 8 }}>
-          <span style={{ fontSize: "0.75rem", color: "#555" }}>⌘+Enter to run</span>
-          <button onClick={runQuery} disabled={loading} style={btnPrimary}>
-            {loading ? "Running…" : "Run Query"}
+      <div style={{ background: "#111118", border: "1px solid #2d2d44", borderRadius: 12, padding: "1.25rem", marginBottom: "1.5rem" }}>
+        <h3 style={{ fontSize: "0.9rem", color: "#a78bfa", marginBottom: "1rem" }}>Place New Order</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 1fr auto", gap: 8, alignItems: "center" }}>
+          <input
+            value={item}
+            onChange={(e) => setItem(e.target.value)}
+            placeholder="Item (e.g. Burger)"
+            style={inputStyle}
+          />
+          <input
+            type="number"
+            min="1"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            style={inputStyle}
+          />
+          <input
+            value={customerName}
+            onChange={(e) => setCustomerName(e.target.value)}
+            placeholder="Your name"
+            style={inputStyle}
+          />
+          <button onClick={placeOrder} disabled={placing} style={btnPrimary}>
+            {placing ? "…" : "Order"}
           </button>
         </div>
       </div>
 
-      {result && (
+      {loading ? (
+        <p style={{ textAlign: "center", color: "#666" }}>Loading orders…</p>
+      ) : orders.length === 0 ? (
+        <p style={{ textAlign: "center", color: "#666", padding: "3rem 0" }}>No orders yet. Place one above!</p>
+      ) : (
         <div style={{ overflowX: "auto", border: "1px solid #222", borderRadius: 8 }}>
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
             <thead>
               <tr>
-                {result.fields.map((f) => (
-                  <th key={f} style={{ padding: "8px 12px", borderBottom: "1px solid #333", textAlign: "left", color: "#a78bfa", fontWeight: 600 }}>{f}</th>
-                ))}
+                <th style={thStyle}>Item</th>
+                <th style={thStyle}>Qty</th>
+                <th style={thStyle}>Customer</th>
+                <th style={thStyle}>Status</th>
+                <th style={thStyle}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {result.rows.map((row, i) => (
-                <tr key={i} style={{ background: i % 2 === 0 ? "#111" : "#161616" }}>
-                  {result.fields.map((f) => (
-                    <td key={f} style={{ padding: "6px 12px", borderBottom: "1px solid #1a1a1a", color: "#ccc", fontFamily: "monospace" }}>
-                      {row[f] === null ? <span style={{ color: "#555" }}>NULL</span> : String(row[f])}
-                    </td>
-                  ))}
+              {orders.map((o, i) => (
+                <tr key={o.id} style={{ background: i % 2 === 0 ? "#111" : "#161616" }}>
+                  <td style={tdStyle}>{o.item}</td>
+                  <td style={tdStyle}>{o.quantity}</td>
+                  <td style={tdStyle}>{o.customer_name}</td>
+                  <td style={tdStyle}>
+                    <span style={{ color: statusColor(o.status), fontWeight: 600 }}>{o.status}</span>
+                  </td>
+                  <td style={tdStyle}>
+                    {o.status === "pending" && (
+                      <button onClick={() => updateStatus(o.id, "preparing")} style={{ ...btnSecondary, fontSize: "0.7rem", padding: "2px 8px" }}>
+                        Start
+                      </button>
+                    )}
+                    {o.status === "preparing" && (
+                      <button onClick={() => updateStatus(o.id, "delivered")} style={{ ...btnSecondary, fontSize: "0.7rem", padding: "2px 8px" }}>
+                        Deliver
+                      </button>
+                    )}
+                    {o.status === "delivered" && <span style={{ color: "#555" }}>Done</span>}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {result.rowCount === 0 && (
-            <p style={{ textAlign: "center", padding: "1.5rem", color: "#666" }}>No rows returned.</p>
-          )}
         </div>
       )}
     </>
@@ -673,6 +702,8 @@ const envRow = { display: "flex", alignItems: "center", gap: 8, fontSize: "0.8re
 const sectionLabel = { fontSize: "0.75rem", color: "#888", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 };
 const inputStyle = { background: "#0d0d14", border: "1px solid #333", borderRadius: 6, padding: "4px 8px", color: "#e5e5e5", fontSize: "0.8rem", fontFamily: "monospace", flex: 1 };
 const tagStyle = { fontSize: "0.75rem", padding: "3px 10px", borderRadius: 6, background: "#1a1a2e", border: "1px solid #333", color: "#58a6ff" };
+const thStyle = { padding: "8px 12px", borderBottom: "1px solid #333", textAlign: "left", color: "#a78bfa", fontWeight: 600 };
+const tdStyle = { padding: "6px 12px", borderBottom: "1px solid #1a1a1a", color: "#ccc" };
 const envBadge = (type) => ({
   fontSize: "0.65rem", padding: "1px 6px", borderRadius: 4, fontWeight: 600, textTransform: "uppercase", flexShrink: 0,
   background: type === "binding" ? "rgba(167,139,250,0.15)" : "rgba(88,166,255,0.15)",
