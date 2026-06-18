@@ -7,6 +7,8 @@ export default function handler(req, res) {
     PGPORT: process.env.PGPORT ?? null,
     PGDATABASE: process.env.PGDATABASE ?? null,
     PGSSLMODE: process.env.PGSSLMODE ?? null,
+    DSQL_ADMIN_USER: process.env.DSQL_ADMIN_USER ?? null,
+    DSQL_REGION: process.env.DSQL_REGION ?? null,
     BEDROCK_REGION: process.env.BEDROCK_REGION ?? null,
   };
 
