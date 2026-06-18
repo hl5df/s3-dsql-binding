@@ -461,7 +461,7 @@ function BedrockTab({ toast }) {
                 color: m.role === "error" ? "#f85149" : "#e5e5e5",
               }}>
                 {m.text}
-                {m.usage && (
+                {m.usage?.input_tokens != null && (
                   <div style={{ fontSize: "0.7rem", color: "#555", marginTop: 4 }}>
                     tokens: {m.usage.input_tokens} in / {m.usage.output_tokens} out
                   </div>

@@ -1,6 +1,6 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 
-const client = new BedrockRuntimeClient({ region: process.env.BEDROCK_REGION });
+const client = new BedrockRuntimeClient({ region: process.env.BEDROCK_REGION || "us-east-1" });
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
@@ -24,8 +24,13 @@ export default async function handler(req, res) {
     });
 
     const response = await client.send(command);
-    const result = JSON.parse(new TextDecoder().decode(response.body));
-    res.json({ output: result.content?.[0]?.text ?? "", model, usage: result.usage });
+    const raw = new TextDecoder().decode(response.body);
+    const result = JSON.parse(raw);
+    const output = result.content?.[0]?.text ?? result.completion ?? "";
+    if (!output) {
+      return res.status(500).json({ error: `Empty response from model ${model}. Raw: ${raw.slice(0, 500)}` });
+    }
+    res.json({ output, model, usage: result.usage });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
