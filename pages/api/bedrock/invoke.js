@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   const { prompt } = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   if (!prompt) return res.status(400).json({ error: "Missing prompt" });
 
-  const model = process.env.BEDROCK_MODEL_ID;
+  const model = process.env.BEDROCK_MODEL_ID || "anthropic.claude-haiku-4-5-20251001-v1:0";
 
   try {
     const body = JSON.stringify({
