@@ -1,16 +1,12 @@
 {
-  "name": "test-05-16",
+  "name": "ms3-demo-dsql-0617",
   "env": {
-    "production": {
-      "integrations": []
-    },
-    "preview": {
-      "integrations": []
-    }
+    "production": {},
+    "preview": {}
   },
   "deploy": {
     "install": "npm ci",
     "output_directory": ".omega",
-    "build": "@omega-next-adapter"
+    "build": "node scripts/migrate.js && @omega-next-adapter"
   }
 }
