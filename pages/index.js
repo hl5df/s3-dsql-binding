@@ -412,7 +412,6 @@ function BedrockTab({ toast }) {
   const [prompt, setPrompt] = useState("");
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [modelId, setModelId] = useState("us.anthropic.claude-sonnet-4-20250514-v1:0");
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -429,7 +428,7 @@ function BedrockTab({ toast }) {
       const res = await fetch("/api/bedrock/invoke", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt: userMsg, modelId }),
+        body: JSON.stringify({ prompt: userMsg }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -445,14 +444,6 @@ function BedrockTab({ toast }) {
     <>
       <div style={{ display: "flex", gap: "1.5rem", marginBottom: "1.5rem", fontSize: "0.8rem", color: "#888", alignItems: "center" }}>
         <span>🧠 <strong style={{ color: "#e5e5e5" }}>Amazon Bedrock</strong></span>
-        <select
-          value={modelId}
-          onChange={(e) => setModelId(e.target.value)}
-          style={{ background: "#0d0d14", border: "1px solid #333", borderRadius: 6, padding: "4px 8px", color: "#e5e5e5", fontSize: "0.8rem" }}
-        >
-          <option value="us.anthropic.claude-sonnet-4-20250514-v1:0">Claude Sonnet 4</option>
-          <option value="us.anthropic.claude-haiku-4-5-20251001-v1:0">Claude Haiku 4.5</option>
-        </select>
       </div>
 
       <div style={{ border: "1px solid #222", borderRadius: 12, overflow: "hidden", marginBottom: "1rem" }}>

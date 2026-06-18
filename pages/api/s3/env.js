@@ -10,6 +10,7 @@ export default function handler(req, res) {
     DSQL_ADMIN_USER: process.env.DSQL_ADMIN_USER ?? null,
     DSQL_REGION: process.env.DSQL_REGION ?? null,
     BEDROCK_REGION: process.env.BEDROCK_REGION ?? null,
+    BEDROCK_MODEL_ID: process.env.BEDROCK_MODEL_ID ?? null,
   };
 
   const custom = {};

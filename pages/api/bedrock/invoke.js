@@ -4,10 +4,10 @@ const client = new BedrockRuntimeClient({ region: process.env.BEDROCK_REGION });
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
-  const { prompt, modelId } = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+  const { prompt } = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   if (!prompt) return res.status(400).json({ error: "Missing prompt" });
 
-  const model = modelId || "us.anthropic.claude-sonnet-4-20250514-v1:0";
+  const model = process.env.BEDROCK_MODEL_ID;
 
   try {
     const body = JSON.stringify({
