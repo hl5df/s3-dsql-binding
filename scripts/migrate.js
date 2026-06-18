@@ -11,13 +11,17 @@ async function migrate() {
   const match = host.match(/\.dsql\.(.+?)\.on\.aws/);
   const region = match ? match[1] : "us-east-1";
 
+  const adminUser = process.env.DSQL_ADMIN_USER || "admin";
+  console.log(`Migration: PGHOST=${host}, region=${region}, user=${adminUser}`);
+  console.log(`Migration: AWS creds present: ACCESS_KEY=${!!process.env.AWS_ACCESS_KEY_ID}, SESSION_TOKEN=${!!process.env.AWS_SESSION_TOKEN}`);
+
   const signer = new DsqlSigner({ hostname: host, region });
   const token = await signer.getDbConnectAdminAuthToken();
 
   const connection = postgres({
     host,
     port: parseInt(process.env.PGPORT || "5432"),
-    username: process.env.DSQL_ADMIN_USER || "admin",
+    username: adminUser,
     password: token,
     database: process.env.PGDATABASE || "postgres",
     ssl: true,
