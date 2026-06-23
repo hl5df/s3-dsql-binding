@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     const prefix = req.query.prefix || "";
     const data = await client.send(
       new ListObjectsV2Command({
-        Bucket: "kaixin-hackathon",
+        Bucket: process.env.BUCKET_NAME,
         Prefix: prefix,
         Delimiter: "/",
       })
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
       prefix,
       folders,
       objects,
-      bucket: "kaixin-hackathon",
+      bucket: process.env.BUCKET_NAME,
       region: process.env.BUCKET_REGION || "us-east-1",
     });
   } catch (e) {

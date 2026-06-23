@@ -7,7 +7,7 @@ const ENDPOINT = "https://ji42dh0n04.execute-api.us-east-1.amazonaws.com/gamma";
 const REGION = "us-east-1";
 const INTEGRATION = "s3-integ-test";
 const INTEGRATION_TYPE = "aws:s3:bucket";
-const BUCKET_ARN = "arn:aws:s3:::0chzxy-unw031r";
+const BUCKET_ARN = `arn:aws:s3:::${process.env.BUCKET_NAME}`;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();

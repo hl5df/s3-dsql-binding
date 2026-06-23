@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     const url = await getSignedUrl(
       client,
       new PutObjectCommand({
-        Bucket: "kaixin-hackathon",
+        Bucket: process.env.BUCKET_NAME,
         Key: key,
         ContentType: contentType || "application/octet-stream",
       }),

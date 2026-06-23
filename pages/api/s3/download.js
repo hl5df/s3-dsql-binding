@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     const { key } = req.query;
     const url = await getSignedUrl(
       client,
-      new GetObjectCommand({ Bucket: "kaixin-hackathon", Key: key }),
+      new GetObjectCommand({ Bucket: process.env.BUCKET_NAME, Key: key }),
       { expiresIn: 300 }
     );
     res.json({ url });

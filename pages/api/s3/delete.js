@@ -7,7 +7,7 @@ export default async function handler(req, res) {
     const key = req.method === "GET" ? req.query.key : (typeof req.body === "string" ? JSON.parse(req.body) : req.body).key;
     if (!key) throw new Error("Missing key");
     await client.send(
-      new DeleteObjectCommand({ Bucket: "kaixin-hackathon", Key: key })
+      new DeleteObjectCommand({ Bucket: process.env.BUCKET_NAME, Key: key })
     );
     res.json({ ok: true });
   } catch (e) {
